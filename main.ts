@@ -5,6 +5,7 @@ import { EndMill } from "./types/end-mill";
 import * as fs from "fs";
 import * as path from "path";
 
+// Defines constants for using in the program
 const frees = new EndMill(6);
 const stok = new Stok(26, 85);
 
@@ -36,6 +37,7 @@ function freesEenKeerRondEnHeenEnWeer(): void {
   }
 }
 
+// Program starts here
 g.moveToSafety();
 
 for (let diepte = 0; diepte > eindDiepte; diepte = diepte - zStapGrote) {
@@ -46,11 +48,11 @@ for (let diepte = 0; diepte > eindDiepte; diepte = diepte - zStapGrote) {
 g.moveToSafety();
 
 const gcode = g.generate();
+
+// Write content to the file
 const filePath = path.join(
   "./output",
   `stok-${stok.dikte}-${stok.lengte}.nc`
 );
-
-// Write content to the file
 fs.writeFileSync(filePath, gcode, "utf8");
 console.log('File written to ' + filePath);
