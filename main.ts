@@ -7,13 +7,14 @@ import * as path from "path";
 
 // Defines constants for using in the program
 const frees = new EndMill(6);
-const stok = new Stok(26, 85);
+const stockLengte = 3;
+const stok = new Stok(14.4 * 2, stockLengte);
 
-let zStapGrote: number = 0.5;
+let zStapGrote: number = 1;
 const aantalAStappen = Math.ceil(stok.omtrek / frees.radius);
 const aStapGrote: number = 360 / aantalAStappen;
 
-const eindDiepte: number = -0.5;
+const eindDiepte: number = -8;
 zStapGrote = Math.min(zStapGrote, Math.abs(eindDiepte));
 
 const savePosition: Coordinates = { X: 0, Y: 0, Z: 10 };
@@ -25,24 +26,27 @@ const g = new GcodeWriter(
   savePosition
 );
 
-function freesEenKeerRondEnHeenEnWeer(): void {
+function freesEenKeerRondEnHeenEnWeer(beginPosition: number): number {
   for (let hoek = 0; hoek <= 365; hoek = hoek + (aStapGrote * 2)) {
     g.feed({ Y: stok.lengte });
-    g.rotate(hoek);
+    g.rotate(beginPosition + hoek);
     if (hoek >= 360) {
       break;
     }
     g.feed({ Y: 0 });
-    g.rotate(hoek + aStapGrote);
+    g.rotate(beginPosition + hoek + aStapGrote);
   }
+
+  return beginPosition + 360;
 }
 
 // Program starts here
 g.moveToSafety();
 
+let lastAngle = 0;
 for (let diepte = 0; diepte > eindDiepte; diepte = diepte - zStapGrote) {
   g.feed({ Z: diepte - zStapGrote });
-  freesEenKeerRondEnHeenEnWeer();
+  lastAngle = freesEenKeerRondEnHeenEnWeer(lastAngle);
 }
 
 g.moveToSafety();
@@ -52,7 +56,7 @@ const gcode = g.generate();
 // Write content to the file
 const filePath = path.join(
   "./output",
-  `stok-${stok.dikte}-${stok.lengte}.nc`
+  `stok-${stok.dikte}-${stok.lengte}_${eindDiepte}.nc`
 );
 fs.writeFileSync(filePath, gcode, "utf8");
 console.log('File written to ' + filePath);
